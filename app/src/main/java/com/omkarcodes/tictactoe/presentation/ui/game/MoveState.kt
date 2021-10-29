@@ -1,4 +1,4 @@
-package com.omkarcodes.tictactoe.presentation.ui.home
+package com.omkarcodes.tictactoe.presentation.ui.game
 
 import com.omkarcodes.tictactoe.presentation.ui.UserMove
 import com.omkarcodes.tictactoe.presentation.util.Constants.defaultMoves

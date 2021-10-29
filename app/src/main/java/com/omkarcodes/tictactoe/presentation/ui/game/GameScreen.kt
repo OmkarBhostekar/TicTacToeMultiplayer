@@ -1,4 +1,4 @@
-package com.omkarcodes.tictactoe.presentation.ui.home
+package com.omkarcodes.tictactoe.presentation.ui.game
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.*
@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.omkarcodes.tictactoe.R
+import com.omkarcodes.tictactoe.presentation.ui.HomeViewModel
 import com.omkarcodes.tictactoe.presentation.ui.SelectionType
 import com.omkarcodes.tictactoe.presentation.ui.UserMove
 import com.omkarcodes.tictactoe.presentation.util.Constants.TYPE_CROSS
@@ -26,7 +27,7 @@ import com.omkarcodes.tictactoe.presentation.util.Constants.defaultPadding
 @SuppressLint("UnrememberedMutableState")
 @ExperimentalFoundationApi
 @Composable
-fun HomeScreen(
+fun GameScreen(
     t: String? = TYPE_CROSS,
     viewModel: HomeViewModel = hiltViewModel()
 ) {

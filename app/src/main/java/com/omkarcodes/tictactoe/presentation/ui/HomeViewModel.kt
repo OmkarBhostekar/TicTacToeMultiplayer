@@ -1,11 +1,11 @@
-package com.omkarcodes.tictactoe.presentation.ui.home
+package com.omkarcodes.tictactoe.presentation.ui
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.ankushgrover.hourglass.Hourglass
-import com.omkarcodes.tictactoe.presentation.ui.SelectionType
-import com.omkarcodes.tictactoe.presentation.ui.UserMove
+import com.omkarcodes.tictactoe.presentation.ui.game.MatchStatus
+import com.omkarcodes.tictactoe.presentation.ui.game.MoveState
 import com.omkarcodes.tictactoe.presentation.util.Constants
 import com.omkarcodes.tictactoe.presentation.util.Constants.defaultMoves
 import dagger.hilt.android.lifecycle.HiltViewModel

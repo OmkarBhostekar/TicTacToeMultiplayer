@@ -16,7 +16,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.omkarcodes.tictactoe.presentation.ui.home.HomeScreen
+import com.omkarcodes.tictactoe.presentation.ui.game.GameScreen
+import com.omkarcodes.tictactoe.presentation.ui.lobby.LobbyScreen
 import com.omkarcodes.tictactoe.presentation.ui.welcome.WelcomeScreen
 
 @ExperimentalFoundationApi
@@ -32,11 +33,14 @@ fun TicTocToeNavigation() {
                 composable(Screen.WelcomeScreen.route) {
                     WelcomeScreen(navController = navController)
                 }
+                composable(Screen.LobbyScreen.route) {
+                    LobbyScreen(navController = navController)
+                }
                 composable(
-                    route = Screen.HomeScreen.route + "/{type}",
+                    route = Screen.GameScreen.route + "/{type}",
                     arguments = listOf(navArgument("type") { type = NavType.StringType })
                 ) { backStackEntry ->
-                    HomeScreen(
+                    GameScreen(
                         t = backStackEntry.arguments?.getString("type")
                     )
                 }
