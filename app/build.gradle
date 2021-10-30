@@ -89,4 +89,11 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation 'com.ankushgrover:Hourglass:2.0.0'
 
+    implementation ('io.socket:socket.io-client:2.0.1') {
+        // excluding org.json which is provided by Android
+        exclude group: 'org.json', module: 'json'
+    }
+
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+
 }

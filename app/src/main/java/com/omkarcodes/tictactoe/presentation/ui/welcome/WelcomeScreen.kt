@@ -21,16 +21,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.omkarcodes.tictactoe.R
 import com.omkarcodes.tictactoe.presentation.navigation.Screen
 import com.omkarcodes.tictactoe.presentation.theme.darkBlue
+import com.omkarcodes.tictactoe.presentation.ui.HomeViewModel
 import com.omkarcodes.tictactoe.presentation.util.Constants.TYPE_CIRCLE
 import com.omkarcodes.tictactoe.presentation.util.Constants.defaultPadding
 
 @Composable
-fun WelcomeScreen(navController: NavController) {
-    var roomId = remember { mutableStateOf("") }
+fun WelcomeScreen(
+    navController: NavController,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+    val roomId = remember { mutableStateOf("") }
+    val state = viewModel.gameState
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -74,6 +80,7 @@ fun WelcomeScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
             OutlinedButton(
                 onClick = {
+                    viewModel.joinRoom(roomId.value)
                     navController.navigate(Screen.LobbyScreen.route)
                 },
                 shape = RoundedCornerShape(28.dp),
@@ -88,6 +95,7 @@ fun WelcomeScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(20.dp))
             OutlinedButton(
                 onClick = {
+                    viewModel.createRoom()
                     navController.navigate(Screen.LobbyScreen.route)
                 },
                 shape = RoundedCornerShape(28.dp),

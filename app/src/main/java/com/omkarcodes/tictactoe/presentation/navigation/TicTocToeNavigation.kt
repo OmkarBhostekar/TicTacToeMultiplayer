@@ -16,13 +16,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.omkarcodes.tictactoe.presentation.ui.HomeViewModel
 import com.omkarcodes.tictactoe.presentation.ui.game.GameScreen
 import com.omkarcodes.tictactoe.presentation.ui.lobby.LobbyScreen
 import com.omkarcodes.tictactoe.presentation.ui.welcome.WelcomeScreen
 
 @ExperimentalFoundationApi
 @Composable
-fun TicTocToeNavigation() {
+fun TicTocToeNavigation(
+    viewModel: HomeViewModel
+) {
     val navController = rememberNavController()
     Scaffold(backgroundColor = Color.Transparent) {
         Box(modifier = Modifier.padding(top = 32.dp)) {
@@ -31,17 +34,18 @@ fun TicTocToeNavigation() {
                 startDestination = Screen.WelcomeScreen.route
             ) {
                 composable(Screen.WelcomeScreen.route) {
-                    WelcomeScreen(navController = navController)
+                    WelcomeScreen(navController = navController,viewModel = viewModel)
                 }
                 composable(Screen.LobbyScreen.route) {
-                    LobbyScreen(navController = navController)
+                    LobbyScreen(navController = navController,viewModel = viewModel)
                 }
                 composable(
                     route = Screen.GameScreen.route + "/{type}",
                     arguments = listOf(navArgument("type") { type = NavType.StringType })
                 ) { backStackEntry ->
                     GameScreen(
-                        t = backStackEntry.arguments?.getString("type")
+                        t = backStackEntry.arguments?.getString("type"),
+                        viewModel = viewModel
                     )
                 }
             }
