@@ -8,5 +8,6 @@ sealed class EventType(val event: String){
     object STATUS : EventType("status")
     object CHOOSE : EventType("choose")
     object NEXT_MOVE : EventType("nextMove")
-
+    object START: EventType("start")
+    object RESULT: EventType("result")
 }

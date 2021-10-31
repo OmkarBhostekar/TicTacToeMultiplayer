@@ -6,11 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ankushgrover.hourglass.Hourglass
 import com.google.gson.Gson
-import com.omkarcodes.tictactoe.data.model.Choice
-import com.omkarcodes.tictactoe.data.model.EventType
-import com.omkarcodes.tictactoe.data.model.Room
+import com.omkarcodes.tictactoe.data.model.*
 import com.omkarcodes.tictactoe.presentation.ui.game.MatchStatus
 import com.omkarcodes.tictactoe.presentation.ui.game.MoveState
+import com.omkarcodes.tictactoe.presentation.ui.game.ResultType
 import com.omkarcodes.tictactoe.presentation.util.Constants
 import com.omkarcodes.tictactoe.presentation.util.Constants.defaultMoves
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,12 +31,16 @@ class HomeViewModel @Inject constructor(
     private val _timer = mutableStateOf(15)
     val timer: State<Int> = _timer
     var socketId = ""
+    var userIcon = ""
     private val _gameState = mutableStateOf<Room>(Room())
     val gameState: State<Room> = _gameState
     val choose = mutableStateOf(false)
+    val start = mutableStateOf(false)
+    val userMove = mutableStateOf(false)
     val instruction = mutableStateOf("Please wait for other player to join")
+    val result = mutableStateOf(ResultType.IN_PROGRESS)
 
-    private val hourglass: Hourglass = object : Hourglass(15000) {
+    private val hourglass: Hourglass = object : Hourglass(30000) {
         override fun onTimerTick(timeRemaining: Long) {
             _timer.value = (timeRemaining/1000).toInt()
         }
@@ -47,73 +50,20 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    init {
-        hourglass.startTimer()
-    }
-
-    fun setMove(boxId: Int,type: SelectionType) {
+    private fun setMove(boxId: Int, type: SelectionType) {
         hourglass.stopTimer()
-        hourglass.setTime(15000)
+        hourglass.setTime(30000)
         hourglass.startTimer()
         _state.value = _state.value.copy(
             moves = _state.value.moves.toMutableList().also {
-                it[boxId-1] = UserMove(boxId = boxId, userId = _state.value.movesCount % 2, type = getMoveType(type, _state.value.movesCount))
+                it[boxId] = UserMove(boxId = boxId, userId = _state.value.movesCount % 2, type = type)
             },
             movesCount = _state.value.movesCount + 1
         )
-        val result = checkWin()
-        if (result != null){
-            if (result == type){
-                // player 1 won
-                _state.value = _state.value.copy(
-                    status = MatchStatus.COMPLETED,
-                    winnerUser = 0,
-                    movesCount = 0,
-                    moves = defaultMoves
-                )
-            }else{
-                // player 2 won
-                _state.value = _state.value.copy(
-                    status = MatchStatus.COMPLETED,
-                    winnerUser = 1,
-                    movesCount = 0,
-                    moves = defaultMoves
-                )
-            }
-        }else if (_state.value.movesCount >= 9){
-            // draw
-            _state.value = _state.value.copy(
-                status = MatchStatus.NO_RESULT,
-                winnerUser = 0,
-                movesCount = 0,
-                moves = defaultMoves
-            )
-        }
-    }
-
-    private fun checkWin() : SelectionType? {
-        patterns.forEach { p ->
-            val list = mutableListOf<SelectionType>()
-            p.forEach { boxId ->
-                list.add(_state.value.moves[boxId-1].type)
-            }
-            if (list.filter { it == SelectionType.CROSS }.size == 3 || list.filter { it == SelectionType.CIRCLE }.size == 3)
-                return list.first()
-        }
-        return null
-    }
-
-    private fun getMoveType(type: SelectionType, moveCount: Int) : SelectionType {
-        return if (moveCount % 2 == 0){
-            // first player
-            if (type == SelectionType.CROSS) SelectionType.CROSS else SelectionType.CIRCLE
-        }else{
-            if (type == SelectionType.CROSS) SelectionType.CIRCLE else SelectionType.CROSS
-        }
     }
 
     fun connect() = viewModelScope.launch {
-        Timber.d("connecting")
+
         socket.on(Socket.EVENT_CONNECT){
             socketId = socket.id()
             Timber.d("connected $socketId")
@@ -129,23 +79,55 @@ class HomeViewModel @Inject constructor(
             setupLobby(room)
         }
         socket.on(EventType.MOVE.event) {
-
+            val move = gson.fromJson(it.first().toString(),Move::class.java)
+            val type = if (move.player == socketId) {
+                if (userIcon == "X") SelectionType.CROSS else SelectionType.CIRCLE
+            }else{
+                if (userIcon == "X") SelectionType.CIRCLE else SelectionType.CROSS
+            }
+            setMove(move.boxId,type)
         }
         socket.on(EventType.STATUS.event) {
 
         }
         socket.on(EventType.NEXT_MOVE.event) {
-
+            val next = gson.fromJson(it.first().toString(),NextMove::class.java)
+            if (next.playerId == socketId)
+                instruction.value = "Please select your move"
+            else
+                instruction.value = "Waiting for opponent's move"
+            userMove.value = next.playerId == socketId
         }
         socket.on(EventType.CHOOSE.event) {
             val choice = gson.fromJson(it.first().toString(),Choice::class.java)
             if (choice.playerId == socketId)
                 instruction.value = "Please choose your side"
+            else
+                instruction.value = "Opponent is choosing"
             choose.value = choice.playerId == socketId
         }
         socket.on(EventType.READY.event) {
             val room = gson.fromJson(it.first().toString(),Room::class.java)
             setupLobby(room)
+        }
+        socket.on(EventType.START.event) {
+            val s = gson.fromJson(it.first().toString(), Start::class.java)
+            userIcon = if (s.player1 == socketId)
+                s.icon1
+            else
+                s.icon2
+            start.value = true
+            hourglass.startTimer()
+        }
+        socket.on(EventType.RESULT.event) {
+            val r = gson.fromJson(it.first().toString(), Result::class.java)
+            result.value = if (r.winner == userIcon){
+                ResultType.YOU_WON
+            }else if (r.winner == "no result"){
+                ResultType.NO_RESULT
+            }else{
+                ResultType.YOU_LOSE
+            }
         }
         socket.connect()
     }
@@ -193,6 +175,15 @@ class HomeViewModel @Inject constructor(
                 put("roomId",gameState.value.roomId)
                 put("icon1",c)
                 put("icon2",if (c == "X") "O" else "X")
+            })
+        }
+    }
+
+    fun sendMove(boxId: Int) {
+        if (socket.connected()){
+            socket.emit(EventType.MOVE.event,JSONObject().apply {
+                put("roomId",gameState.value.roomId)
+                put("boxId",boxId)
             })
         }
     }

@@ -6,18 +6,27 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.omkarcodes.tictactoe.R
+import com.omkarcodes.tictactoe.presentation.theme.lightBlue
 import com.omkarcodes.tictactoe.presentation.ui.HomeViewModel
 import com.omkarcodes.tictactoe.presentation.ui.SelectionType
 import com.omkarcodes.tictactoe.presentation.ui.UserMove
@@ -29,9 +38,9 @@ import com.omkarcodes.tictactoe.presentation.util.Constants.defaultPadding
 @Composable
 fun GameScreen(
     t: String? = TYPE_CROSS,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    navController: NavController
 ) {
-    val type = if (t == TYPE_CROSS) SelectionType.CROSS else SelectionType.CIRCLE
     val state = viewModel.state.value
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -41,7 +50,13 @@ fun GameScreen(
                 .padding(defaultPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
+            Row(modifier = Modifier.fillMaxWidth(),horizontalArrangement = Arrangement.End) {
+                Image(
+                    painter = painterResource(id = if (t == TYPE_CROSS) R.drawable.ic_cross else R.drawable.ic_circle),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
+                )
+            }
             Spacer(modifier = Modifier.weight(2f))
             Text(
                 text = if (viewModel.timer.value < 10) "00:0${viewModel.timer.value}" else "00:${viewModel.timer.value}",
@@ -54,9 +69,9 @@ fun GameScreen(
             )
             Spacer(modifier = Modifier.weight(1f))
             Text(
-                text = "Player ${if (state.movesCount % 2 == 0) 1 else 2} 's Turn",
+                text = viewModel.instruction.value,
                 color = Color.White,
-                fontSize = 30.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.weight(4f))
@@ -73,34 +88,22 @@ fun GameScreen(
                     modifier = Modifier
                         .fillMaxSize()
                 )
-                BoxLayout(moves = state.moves, onClick = { viewModel.setMove(it.boxId, type) })
+                BoxLayout(moves = state.moves, onClick = {
+                    if (viewModel.userMove.value)
+                        viewModel.sendMove(it.boxId)
+                })
             }
             Spacer(modifier = Modifier.weight(3f))
         }
-
-        if (state.status == MatchStatus.COMPLETED || state.status == MatchStatus.NO_RESULT)
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = if (state.status == MatchStatus.COMPLETED) {
-                        "Player ${if (state.winnerUser!! == 0) 1 else 2} Won"
-                    }else {
-                        "No Result"
-                    },
-                    color = Color.Black,
-                    fontSize = 40.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(15.dp))
-                        .border(2.dp, color = Color.Black, RoundedCornerShape(15.dp))
-                        .background(color = Color.White)
-                        .padding(horizontal = defaultPadding * 2, vertical = defaultPadding)
-                )
-                Spacer(modifier = Modifier.weight(2f))
-            }
+        if (viewModel.result.value != ResultType.IN_PROGRESS){
+            ResultDialog(
+                result = viewModel.result.value,
+                onPlayAgainClick = { },
+                onExitClick = {
+                    navController.popBackStack()
+                }
+            )
+        }
     }
 
 
@@ -134,4 +137,42 @@ fun BoxLayout(
             }
         }
     }
+}
+
+@Composable
+fun ResultDialog(
+    result: ResultType,
+    onExitClick: () -> Unit,
+    onPlayAgainClick: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = {  },
+        title = {
+            Text(text = if (result == ResultType.YOU_WON) "You Won" else if (result == ResultType.YOU_LOSE) "You Lost" else "No Result")
+        },
+        text = {
+            Text(text = if (result == ResultType.YOU_WON) "Congratulations! you won the match" else if (result == ResultType.YOU_LOSE) "Oops! better luck next time" else "Play one more match to decide winner")
+        },
+        confirmButton = {
+            Button(
+                onClick = onPlayAgainClick,
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = lightBlue,
+                    contentColor = Color.White)
+            ) {
+                Text(text = "Play Again")
+            }
+        },
+        dismissButton = {
+            Button(
+                onClick = onExitClick,
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = Color.White,
+                    contentColor = lightBlue),
+            ) {
+                Text(text = "Exit")
+            }
+        },
+        backgroundColor = Color.White,
+    )
 }

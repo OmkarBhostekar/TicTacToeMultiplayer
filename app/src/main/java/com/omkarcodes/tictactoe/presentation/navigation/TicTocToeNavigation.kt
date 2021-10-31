@@ -45,7 +45,8 @@ fun TicTocToeNavigation(
                 ) { backStackEntry ->
                     GameScreen(
                         t = backStackEntry.arguments?.getString("type"),
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        navController = navController,
                     )
                 }
             }

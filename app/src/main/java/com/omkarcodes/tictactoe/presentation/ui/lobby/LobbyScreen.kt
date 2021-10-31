@@ -40,6 +40,15 @@ fun LobbyScreen(
 ) {
     val state = viewModel.gameState
     val isReady = if (state.value.sockets.indexOf(viewModel.socketId) == 0) state.value.ready1 else state.value.ready2
+    if (viewModel.start.value){
+        val type = if (viewModel.userIcon == "O") "circle" else "cross"
+        navController.navigate(Screen.GameScreen.route+"/$type"){
+            popUpTo(Screen.LobbyScreen.route){
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
+    }
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -64,10 +73,8 @@ fun LobbyScreen(
         Spacer(modifier = Modifier.weight(1f))
         if (viewModel.choose.value)
             ChoiceSection(
-                onOClick = { viewModel.choice("O")
-                           navController.navigate(Screen.GameScreen.route)},
-                onXClick = { viewModel.choice("X")
-                    navController.navigate(Screen.GameScreen.route)}
+                onOClick = { viewModel.choice("O") },
+                onXClick = { viewModel.choice("X") }
             )
         Spacer(modifier = Modifier.weight(1f))
         if (state.value.sockets.size == 2 && !isReady)
