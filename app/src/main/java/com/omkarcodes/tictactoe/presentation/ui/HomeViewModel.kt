@@ -27,8 +27,7 @@ class HomeViewModel @Inject constructor(
     private val gson: Gson = Gson()
     private val _state = mutableStateOf<MoveState>(MoveState())
     val state: State<MoveState> = _state
-    private val patterns = Constants.patterns
-    private val _timer = mutableStateOf(15)
+    private val _timer = mutableStateOf(30)
     val timer: State<Int> = _timer
     var socketId = ""
     var userIcon = ""
@@ -128,8 +127,23 @@ class HomeViewModel @Inject constructor(
             }else{
                 ResultType.YOU_LOSE
             }
+            clearMatchData()
         }
         socket.connect()
+    }
+
+    private fun clearMatchData() {
+        _state.value = _state.value.copy(
+            status = MatchStatus.IN_PROGRESS,
+            movesCount = 0,
+            moves = defaultMoves
+        )
+        _state.value = MoveState()
+        userIcon = ""
+        _gameState.value = Room()
+        choose.value = false
+        start.value = false
+        userMove.value = false
     }
 
     private fun setupLobby(room: Room) {

@@ -98,8 +98,12 @@ fun GameScreen(
         if (viewModel.result.value != ResultType.IN_PROGRESS){
             ResultDialog(
                 result = viewModel.result.value,
-                onPlayAgainClick = { },
+                onPlayAgainClick = {
+                    viewModel.result.value = ResultType.IN_PROGRESS
+                    navController.popBackStack()
+                },
                 onExitClick = {
+                    viewModel.result.value = ResultType.IN_PROGRESS
                     navController.popBackStack()
                 }
             )
