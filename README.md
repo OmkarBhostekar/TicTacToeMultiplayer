@@ -1,1 +1,4 @@
-# Online Multiplayer Tic Tac Toe game using Socket.IO, Android and Node.JS
+# Online Multiplayer Tic Tac Toe Game
+
+Online multiplayer tic-tac-toe game where players can play with their friends remotely. 
+This projects uses Android, Jetpack Compose, Socket.IO and Node.js as primary tech stack.
