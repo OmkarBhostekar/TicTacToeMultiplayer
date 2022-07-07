@@ -18,7 +18,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideSocketIO() : Socket {
-        return IO.socket(Constants.SOCKET_URL)
+        val opts = IO.Options()
+        opts.transports = arrayOf(WebSocket.NAME)
+        return IO.socket(Constants.SOCKET_URL, opts)
     }
 
 }
